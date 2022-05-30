@@ -71,6 +71,40 @@ void componentsExit(){
     gfxExit();
 }
 
+std::string checkpointDirToCitraGameCode(std::string checkpointGameSaveDir) {
+    if (checkpointGameSaveDir.rfind("0x", 0) == 0) {
+        std::string gameCode = "0" + checkpointGameSaveDir.substr(2,5);
+        for (auto &elem : gameCode) {
+            elem = std::tolower(elem);
+        }
+        return gameCode;
+    }
+    return "";
+}
+
+void findCheckpointSaves(std::string citraSdmcPath, std::string checkpointPath) {
+    std::string citraSaveBasePath("Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
+
+    std::string path(checkpointPath + "/saves");
+    DIR *dir;
+    struct dirent *ent;
+    if((dir = opendir(path.c_str())) != NULL){
+        while((ent = readdir(dir)) != NULL){
+            std::string dirname = ent->d_name;
+            std::string readpath(path + "/" + dirname);
+            std::cout << readpath << std::endl;
+
+            std::string gameCode = checkpointDirToCitraGameCode(dirname);
+            if (gameCode != "") {
+                std::string fullDropboxPath(citraSdmcPath + "/" + citraSaveBasePath +  "/" + gameCode + "00/data/00000001");
+                std::cout << fullDropboxPath  << std::endl;
+            } else {
+                std::cout << "Invalid game directory, skipping: " << dirname << std::endl;
+            }
+        }
+    }
+}
+
 
 int main(int argc, char** argv){
     if(!componentsInit()) componentsExit();
@@ -80,34 +114,43 @@ int main(int argc, char** argv){
     if(reader.ParseError() < 0){
         printf("Can't load configuration\n");
     } else {
-        // std::string dropboxToken = reader.Get("Dropbox", "token", "");
+        std::string dropboxToken = reader.Get("Dropbox", "token", "");
         
-        // if(dropboxToken != ""){
-        //     Dropbox dropbox(dropboxToken);
-        //     std::map<std::string, std::string> values = reader.GetValues();
-        //     std::map<std::pair<std::string, std::string>, std::vector<std::string>> paths;
-        //     for(auto value : values){
-        //         if(value.first.rfind("paths=", 0) == 0){
-        //             std::pair<std::string, std::string> key = std::make_pair(value.second, value.first.substr(6));
-        //             paths[key] = recurse_dir(value.second);
-        //         }
-        //     }
-        //     if((int)paths.size() > 0) dropbox.upload(paths);
-        // } else {
-        //     printf("Can't load Dropbox token from 3DSync.ini\n");
-        // }
+        if(dropboxToken != ""){
+            Dropbox dropbox(dropboxToken);
+            std::map<std::string, std::string> values = reader.GetValues();
+            std::map<std::pair<std::string, std::string>, std::vector<std::string>> paths;
+            for(auto value : values){
+                if(value.first.rfind("paths=", 0) == 0){
+                    std::pair<std::string, std::string> key = std::make_pair(value.second, value.first.substr(6));
+                    paths[key] = recurse_dir(value.second);
+                }
+            }
 
-        std::string citraSdmcPath = reader.Get("Citra", "sdmc", "");
+            dropbox.list("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
 
-        if (citraSdmcPath != "") {
-            std::cout << "Citra sdmc path: " << citraSdmcPath << std::endl;
-            printf("Downloading Citra saves from Dropbox...\n");
-
-
-            printf("Finished downloading Citra saves.\n");
+            // Upload to Dropbox
+            // if((int)paths.size() > 0) dropbox.upload(paths);
         } else {
-            printf("Citra sdmc path not present, skipping");
+            printf("Can't load Dropbox token from 3DSync.ini\n");
         }
+
+        // std::string citraSdmcPath = reader.Get("Dropbox", "CitraSDMCPath", "");
+
+        // if (citraSdmcPath != "") {
+        //     std::cout << "Citra sdmc path: " << citraSdmcPath << std::endl;
+        //     printf("Downloading Citra saves from Dropbox...\n");
+
+        //     // List local paths
+        //     std::string checkpointPath = reader.Get("Paths", "Checkpoint", "");
+        //     if (checkpointPath != "") {
+        //         findCheckpointSaves(citraSdmcPath, checkpointPath);
+        //     }
+
+        //     printf("Finished downloading Citra saves.\n");
+        // } else {
+        //     printf("Citra sdmc path not present, skipping");
+        // }
     }
 
     printf("\n\nPress START to exit...");
