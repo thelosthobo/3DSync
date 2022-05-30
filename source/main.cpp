@@ -127,7 +127,9 @@ int main(int argc, char** argv){
                 }
             }
 
-            dropbox.list("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
+            auto files = dropbox.list("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
+
+            // TODO: Download files 
 
             // Upload to Dropbox
             // if((int)paths.size() > 0) dropbox.upload(paths);

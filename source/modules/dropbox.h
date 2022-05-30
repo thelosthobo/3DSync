@@ -12,7 +12,7 @@ class Dropbox{
         Dropbox(std::string token);
         ~Dropbox(){};
         void upload(std::map<std::pair<std::string, std::string>, std::vector<std::string>> paths);
-        void list(std::string path);
+        std::vector<std::string> list(std::string path);
     private:
         std::string _token;
         Curl _curl;

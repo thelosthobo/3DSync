@@ -29,7 +29,9 @@ void Dropbox::upload(std::map<std::pair<std::string, std::string>, std::vector<s
     }
 }
 
-void Dropbox::list(std::string path) {
+std::vector<std::string> Dropbox::list(std::string path) {
+    std::vector<std::string> paths;
+
     std::string body("{\"path\":\"" + path + "\"}");
     std::cout << body << std::endl;
     std::string auth("Authorization: Bearer " + _token);
@@ -65,8 +67,11 @@ void Dropbox::list(std::string path) {
             struct json_object *entry = (struct json_object *)(array_list_get_idx(entries_obj, i));
             json_object_object_get_ex(entry, "name", &name);
             json_object_object_get_ex(entry, "path_display", &path_display);
-            std::cout << json_object_get_string(name) << std::endl;
-            std::cout << json_object_get_string(path_display) << std::endl;
+            // std::cout << json_object_get_string(name) << std::endl;
+            // std::cout << json_object_get_string(path_display) << std::endl;
+            paths.push_back(json_object_get_string(path_display));
         }
     }
+
+    return paths;
 }
