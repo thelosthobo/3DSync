@@ -80,21 +80,33 @@ int main(int argc, char** argv){
     if(reader.ParseError() < 0){
         printf("Can't load configuration\n");
     } else {
-        std::string dropboxToken = reader.Get("Dropbox", "token", "");
+        // std::string dropboxToken = reader.Get("Dropbox", "token", "");
         
-        if(dropboxToken != ""){
-            Dropbox dropbox(dropboxToken);
-            std::map<std::string, std::string> values = reader.GetValues();
-            std::map<std::pair<std::string, std::string>, std::vector<std::string>> paths;
-            for(auto value : values){
-                if(value.first.rfind("paths=", 0) == 0){
-                    std::pair<std::string, std::string> key = std::make_pair(value.second, value.first.substr(6));
-                    paths[key] = recurse_dir(value.second);
-                }
-            }
-            if((int)paths.size() > 0) dropbox.upload(paths);
+        // if(dropboxToken != ""){
+        //     Dropbox dropbox(dropboxToken);
+        //     std::map<std::string, std::string> values = reader.GetValues();
+        //     std::map<std::pair<std::string, std::string>, std::vector<std::string>> paths;
+        //     for(auto value : values){
+        //         if(value.first.rfind("paths=", 0) == 0){
+        //             std::pair<std::string, std::string> key = std::make_pair(value.second, value.first.substr(6));
+        //             paths[key] = recurse_dir(value.second);
+        //         }
+        //     }
+        //     if((int)paths.size() > 0) dropbox.upload(paths);
+        // } else {
+        //     printf("Can't load Dropbox token from 3DSync.ini\n");
+        // }
+
+        std::string citraSdmcPath = reader.Get("Citra", "sdmc", "");
+
+        if (citraSdmcPath != "") {
+            std::cout << "Citra sdmc path: " << citraSdmcPath << std::endl;
+            printf("Downloading Citra saves from Dropbox...\n");
+
+
+            printf("Finished downloading Citra saves.\n");
         } else {
-            printf("Can't load Dropbox token from 3DSync.ini\n");
+            printf("Citra sdmc path not present, skipping");
         }
     }
 
