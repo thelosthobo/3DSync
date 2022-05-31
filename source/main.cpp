@@ -13,6 +13,8 @@
 #include "modules/dropbox.h"
 
 
+#define DEBUG
+
 std::vector<std::string> recurse_dir(std::string basepath, std::string additionalpath=""){
     std::vector<std::string> paths;
     DIR *dir;
@@ -127,7 +129,11 @@ int main(int argc, char** argv){
                 }
             }
 
-            auto files = dropbox.list("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
+            auto folders = dropbox.list("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
+
+            for (auto folder : folders) {
+                dropbox.download(folder + "/")
+            }
 
             // TODO: Download files 
 

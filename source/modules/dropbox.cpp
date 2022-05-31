@@ -47,14 +47,15 @@ std::vector<std::string> Dropbox::list(std::string path) {
     _curl.setWriteData(&httpData);
     auto rescode = _curl.perform();
 
-    struct json_object *parsed_json;
-    struct json_object *entries;
-
     auto http_code = _curl.getHTTPCode();
-    
+    std::cout << http_code << std::endl;
+
 
     if (http_code == 200) {
         std::cout << "http data: " << httpData << std::endl;
+
+        struct json_object *parsed_json;
+        struct json_object *entries;
         parsed_json = json_tokener_parse(httpData.c_str());
         json_object_object_get_ex(parsed_json, "entries", &entries);
 
@@ -74,4 +75,32 @@ std::vector<std::string> Dropbox::list(std::string path) {
     }
 
     return paths;
+}
+
+void Dropbox::download(std::string path, std::string destPath) {
+    printf("Downloading %s\n", (path).c_str());
+    FILE *file = fopen((destPath).c_str(), "wb");
+    std::string args("Dropbox-API-Arg: {\"path\":\"" + path + "\"}");
+    std::string auth("Authorization: Bearer " + _token);
+
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, auth.c_str());
+    headers = curl_slist_append(headers, args.c_str());
+    headers = curl_slist_append(headers, "Content-Type: application/octet-stream");
+    headers = curl_slist_append(headers, "Content-Length: 0");
+    headers = curl_slist_append(headers, "Connection: close");
+    _curl.setURL(std::string("https://content.dropboxapi.com/2/files/download"));
+    _curl.setHeaders(headers);
+
+    std::string headerData;
+    _curl.setHeaderData(&headerData);
+    _curl.setWriteFile(file);
+
+    _curl.perform();
+
+    auto http_code = _curl.getHTTPCode();
+    std::cout << http_code << std::endl;
+
+    fclose(file);
+    printf("\n");
 }

@@ -58,6 +58,16 @@ void Curl::setWriteData(void *pointer) {
     curl_easy_setopt(_curl, CURLOPT_WRITEDATA, pointer);
 }
 
+void Curl::setWriteFile(FILE *fp) {
+    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _write_file_callback);
+    curl_easy_setopt(_curl, CURLOPT_WRITEDATA, fp);
+}
+
+void Curl::setHeaderData(void *pointer) {
+    curl_easy_setopt(_curl, CURLOPT_HEADERFUNCTION, _header_callback);
+    curl_easy_setopt(_curl, CURLOPT_HEADERDATA, pointer);
+}
+
 size_t Curl::_read_callback(void *ptr, size_t size, size_t nmemb, void *userdata){
     FILE *readhere = (FILE *)userdata;
     curl_off_t nread;
@@ -73,4 +83,19 @@ size_t Curl::_write_callback(const char* data, size_t size, size_t nmemb, std::s
     size_t newLength = size*nmemb;
     userdata->append(data, newLength);
     return newLength;
+}
+
+size_t Curl::_header_callback(char* buffer, size_t size,
+    size_t nitems, void* userdata)
+{
+    std::string *headers = (std::string*) userdata;
+    headers->append(buffer, nitems * size);
+    return nitems * size;
+}
+
+size_t Curl::_write_file_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+  size_t written;
+  written = fwrite(ptr, size, nmemb, stream);
+  return written;
 }
