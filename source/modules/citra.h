@@ -81,6 +81,10 @@ void downloadCitraSaveToCheckpoint(std::string dropboxToken, std::string timesta
     struct stat info;
 
     if (stat(destPath.c_str(), &info) != 0) {
+        // TODO: Figure this out
+        // FS_Archive sdmcArch;
+        // FSUSER_CreateDirectory(sdmcArch, fsMakePath(PATH_ASCII, destPath.c_str()), 0);
+    
         // int status = mkdir(destPath.c_str(), 0777);
         // if (status != 0) {
         //     std::cout << "Failed to create Checkpoint save dir " << destPath << ", skipping" << std::endl;
