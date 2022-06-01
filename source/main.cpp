@@ -84,7 +84,9 @@ std::string checkpointDirToCitraGameCode(std::string checkpointGameSaveDir) {
     return "";
 }
 
-void findCheckpointSaves(std::string citraSdmcPath, std::string checkpointPath) {
+std::map<std::string, std::string> findCheckpointSaves(std::string citraSdmcPath, std::string checkpointPath) {
+    std::map<std::string, std::string> pathmap;
+    
     std::string citraSaveBasePath("Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
 
     std::string path(checkpointPath + "/saves");
@@ -98,13 +100,16 @@ void findCheckpointSaves(std::string citraSdmcPath, std::string checkpointPath) 
 
             std::string gameCode = checkpointDirToCitraGameCode(dirname);
             if (gameCode != "") {
-                std::string fullDropboxPath(citraSdmcPath + "/" + citraSaveBasePath +  "/" + gameCode + "00/data/00000001");
-                std::cout << fullDropboxPath  << std::endl;
+                pathmap[gameCode] = dirname;
+                // std::string fullDropboxPath(citraSdmcPath + "/" + citraSaveBasePath +  "/" + gameCode + "00/data/00000001");
+                // std::cout << fullDropboxPath  << std::endl;
             } else {
                 std::cout << "Invalid game directory, skipping: " << dirname << std::endl;
             }
         }
     }
+
+    return pathmap;
 }
 
 

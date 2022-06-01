@@ -29,8 +29,8 @@ void Dropbox::upload(std::map<std::pair<std::string, std::string>, std::vector<s
     }
 }
 
-std::vector<std::string> Dropbox::list(std::string path) {
-    std::vector<std::string> paths;
+std::vector<ListResult> Dropbox::list(std::string path) {
+    std::vector<ListResult> paths;
 
     std::string body("{\"path\":\"" + path + "\"}");
     std::cout << body << std::endl;
@@ -50,7 +50,6 @@ std::vector<std::string> Dropbox::list(std::string path) {
     auto http_code = _curl.getHTTPCode();
     std::cout << http_code << std::endl;
 
-
     if (http_code == 200) {
         std::cout << "http data: " << httpData << std::endl;
 
@@ -68,9 +67,13 @@ std::vector<std::string> Dropbox::list(std::string path) {
             struct json_object *entry = (struct json_object *)(array_list_get_idx(entries_obj, i));
             json_object_object_get_ex(entry, "name", &name);
             json_object_object_get_ex(entry, "path_display", &path_display);
-            // std::cout << json_object_get_string(name) << std::endl;
-            // std::cout << json_object_get_string(path_display) << std::endl;
-            paths.push_back(json_object_get_string(path_display));
+
+            ListResult lr = {
+                json_object_get_string(name),
+                json_object_get_string(path_display)
+            };
+
+            paths.push_back(lr);
         }
     }
 
@@ -78,7 +81,8 @@ std::vector<std::string> Dropbox::list(std::string path) {
 }
 
 void Dropbox::download(std::string path, std::string destPath) {
-    printf("Downloading %s\n", (path).c_str());
+    // printf("Downloading %s\n", (path).c_str());
+    std::cout << "Downloading " << path << " to " << destPath << std::endl;
     FILE *file = fopen((destPath).c_str(), "wb");
     std::string args("Dropbox-API-Arg: {\"path\":\"" + path + "\"}");
     std::string auth("Authorization: Bearer " + _token);
