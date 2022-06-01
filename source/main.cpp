@@ -84,6 +84,14 @@ int main(int argc, char** argv){
         
         if(dropboxToken != ""){
             Dropbox dropbox(dropboxToken);
+
+            // Download Citra saves to local Checkpoint directory
+            std::string checkpointPath = reader.Get("Paths", "Checkpoint", "");
+            if (checkpointPath != "") {
+                downloadCitraSaves(dropboxToken, checkpointPath);
+            }
+
+            // Upload to Dropbox
             std::map<std::string, std::string> values = reader.GetValues();
             std::map<std::pair<std::string, std::string>, std::vector<std::string>> paths;
             for(auto value : values){
@@ -92,43 +100,11 @@ int main(int argc, char** argv){
                     paths[key] = recurse_dir(value.second);
                 }
             }
-
-            // Download Citra saves to local Checkpoint directory
-            auto folder = dropbox.list("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
-            for (auto file : folder) {
-                std::cout << file.name << std::endl;
-                downloadCitraSaveToCheckpoint(
-                    &dropbox,
-                    timestamp,
-                    checkpointPath,
-                    pathmap,
-                    file.name,
-                    file.path_display
-                );
-            }
-
-            // Upload to Dropbox
-            // if((int)paths.size() > 0) dropbox.upload(paths);
+            if((int)paths.size() > 0) dropbox.upload(paths);
         } else {
             printf("Can't load Dropbox token from 3DSync.ini\n");
         }
 
-        // std::string citraSdmcPath = reader.Get("Dropbox", "CitraSDMCPath", "");
-
-        // if (citraSdmcPath != "") {
-        //     std::cout << "Citra sdmc path: " << citraSdmcPath << std::endl;
-        //     printf("Downloading Citra saves from Dropbox...\n");
-
-        //     // List local paths
-        //     std::string checkpointPath = reader.Get("Paths", "Checkpoint", "");
-        //     if (checkpointPath != "") {
-        //         findCheckpointSaves(citraSdmcPath, checkpointPath);
-        //     }
-
-        //     printf("Finished downloading Citra saves.\n");
-        // } else {
-        //     printf("Citra sdmc path not present, skipping");
-        // }
     }
 
     printf("\n\nPress START to exit...");

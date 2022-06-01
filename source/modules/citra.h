@@ -94,3 +94,26 @@ void downloadCitraSaveToCheckpoint(std::string dropboxToken, std::string timesta
         std::cout << "Checkpoint save dir already exists, skipping: " << destPath << std::endl;
     }
 }
+
+void downloadCitraSaves(std::string dropboxToken, std::string checkpointPath) {
+    auto pathmap = findCheckpointSaves(checkpointPath);
+
+    Dropbox dropbox(dropboxToken);
+    auto folder = dropbox.list_folder("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
+    for (auto lr : folder) {
+        std::string timestamp = getUpdateTimestampForCitraSave(dropboxToken, lr.path_display);
+        if (timestamp == "") {
+            std::cout << lr.name << ": Could not find timestamp, skipping" << std::endl; 
+            continue;
+        }
+
+        downloadCitraSaveToCheckpoint(
+            dropboxToken,
+            timestamp,
+            checkpointPath,
+            pathmap,
+            lr.name,
+            lr.path_display
+        );
+    }
+}
