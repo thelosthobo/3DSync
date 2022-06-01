@@ -11,9 +11,8 @@
 
 #include "libs/inih/INIReader/INIReader.h"
 #include "modules/dropbox.h"
-
-
-#define DEBUG
+#include "modules/citra.h"
+#include "modules/time.h"
 
 std::vector<std::string> recurse_dir(std::string basepath, std::string additionalpath=""){
     std::vector<std::string> paths;
@@ -73,46 +72,6 @@ void componentsExit(){
     gfxExit();
 }
 
-std::string checkpointDirToCitraGameCode(std::string checkpointGameSaveDir) {
-    if (checkpointGameSaveDir.rfind("0x", 0) == 0) {
-        std::string gameCode = "0" + checkpointGameSaveDir.substr(2,5);
-        for (auto &elem : gameCode) {
-            elem = std::tolower(elem);
-        }
-        return gameCode;
-    }
-    return "";
-}
-
-std::map<std::string, std::string> findCheckpointSaves(std::string citraSdmcPath, std::string checkpointPath) {
-    std::map<std::string, std::string> pathmap;
-    
-    std::string citraSaveBasePath("Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
-
-    std::string path(checkpointPath + "/saves");
-    DIR *dir;
-    struct dirent *ent;
-    if((dir = opendir(path.c_str())) != NULL){
-        while((ent = readdir(dir)) != NULL){
-            std::string dirname = ent->d_name;
-            std::string readpath(path + "/" + dirname);
-            std::cout << readpath << std::endl;
-
-            std::string gameCode = checkpointDirToCitraGameCode(dirname);
-            if (gameCode != "") {
-                pathmap[gameCode] = dirname;
-                // std::string fullDropboxPath(citraSdmcPath + "/" + citraSaveBasePath +  "/" + gameCode + "00/data/00000001");
-                // std::cout << fullDropboxPath  << std::endl;
-            } else {
-                std::cout << "Invalid game directory, skipping: " << dirname << std::endl;
-            }
-        }
-    }
-
-    return pathmap;
-}
-
-
 int main(int argc, char** argv){
     if(!componentsInit()) componentsExit();
 
@@ -134,13 +93,19 @@ int main(int argc, char** argv){
                 }
             }
 
-            auto folders = dropbox.list("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
-
-            for (auto folder : folders) {
-                dropbox.download(folder + "/")
+            // Download Citra saves to local Checkpoint directory
+            auto folder = dropbox.list("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
+            for (auto file : folder) {
+                std::cout << file.name << std::endl;
+                downloadCitraSaveToCheckpoint(
+                    &dropbox,
+                    timestamp,
+                    checkpointPath,
+                    pathmap,
+                    file.name,
+                    file.path_display
+                );
             }
-
-            // TODO: Download files 
 
             // Upload to Dropbox
             // if((int)paths.size() > 0) dropbox.upload(paths);

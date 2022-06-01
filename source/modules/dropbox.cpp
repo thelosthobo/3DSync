@@ -1,5 +1,4 @@
 #include "dropbox.h"
-// #include <3ds.h>
 #include <json-c/json.h>
 #include <memory>
 #include <iostream>
@@ -29,16 +28,17 @@ void Dropbox::upload(std::map<std::pair<std::string, std::string>, std::vector<s
     }
 }
 
-std::vector<ListResult> Dropbox::list(std::string path) {
+std::vector<ListResult> Dropbox::list_folder(std::string path) {
     std::vector<ListResult> paths;
 
     std::string body("{\"path\":\"" + path + "\"}");
-    std::cout << body << std::endl;
+    // std::cout << body << std::endl;
     std::string auth("Authorization: Bearer " + _token);
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, auth.c_str());
     headers = curl_slist_append(headers, "Content-Type: application/json");
     headers = curl_slist_append(headers, "Expect:");
+    headers = curl_slist_append(headers, "Connection: close");
     _curl.setURL(std::string("https://api.dropboxapi.com/2/files/list_folder"));
     _curl.setHeaders(headers);
     _curl.setBody(body.c_str());
@@ -48,10 +48,11 @@ std::vector<ListResult> Dropbox::list(std::string path) {
     auto rescode = _curl.perform();
 
     auto http_code = _curl.getHTTPCode();
-    std::cout << http_code << std::endl;
 
-    if (http_code == 200) {
-        std::cout << "http data: " << httpData << std::endl;
+    if (http_code != 200) {
+       std::cout << "Download error: Received " << http_code << std::endl;
+    } else {
+        // std::cout << "http data: " << httpData << std::endl;
 
         struct json_object *parsed_json;
         struct json_object *entries;
@@ -60,17 +61,26 @@ std::vector<ListResult> Dropbox::list(std::string path) {
 
         auto entries_obj = json_object_get_array(entries);
         int len = array_list_length(entries_obj);
-        std::cout << "Num Dirs: " << len << std::endl;
         for (int i = 0; i < len; i++) {
             struct json_object *name;
             struct json_object *path_display;
+            struct json_object *server_modified;
+            std::string server_modified_str("");
+            struct json_object *tag;
             struct json_object *entry = (struct json_object *)(array_list_get_idx(entries_obj, i));
             json_object_object_get_ex(entry, "name", &name);
             json_object_object_get_ex(entry, "path_display", &path_display);
+            json_object_object_get_ex(entry, ".tag", &tag);
+
+            if (std::string(json_object_get_string(tag)) == "file") {
+                json_object_object_get_ex(entry, "server_modified", &server_modified);
+                server_modified_str = std::string(json_object_get_string(server_modified));
+            }
 
             ListResult lr = {
-                json_object_get_string(name),
-                json_object_get_string(path_display)
+                std::string(json_object_get_string(name)),
+                std::string(json_object_get_string(path_display)),
+                server_modified_str
             };
 
             paths.push_back(lr);
@@ -81,8 +91,8 @@ std::vector<ListResult> Dropbox::list(std::string path) {
 }
 
 void Dropbox::download(std::string path, std::string destPath) {
-    // printf("Downloading %s\n", (path).c_str());
     std::cout << "Downloading " << path << " to " << destPath << std::endl;
+
     FILE *file = fopen((destPath).c_str(), "wb");
     std::string args("Dropbox-API-Arg: {\"path\":\"" + path + "\"}");
     std::string auth("Authorization: Bearer " + _token);
@@ -103,8 +113,9 @@ void Dropbox::download(std::string path, std::string destPath) {
     _curl.perform();
 
     auto http_code = _curl.getHTTPCode();
-    std::cout << http_code << std::endl;
+    if (http_code != 200) {
+       std::cout << "Download error: Received " << http_code << std::endl;
+    }
 
     fclose(file);
-    printf("\n");
 }

@@ -44,7 +44,6 @@ void Curl::setBody(const void *pointer) {
 int Curl::perform(){
     CURLcode rescode = curl_easy_perform(_curl);
     const char *res = curl_easy_strerror(rescode);
-    printf("Curl result: %d %s\n", rescode, res);
     return rescode;
 }
 
