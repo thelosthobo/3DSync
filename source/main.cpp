@@ -101,7 +101,7 @@ int main(int argc, char** argv){
                     paths[key] = recurse_dir(value.second);
                 }
             }
-            if((int)paths.size() > 0) dropbox.upload(paths);
+            // if((int)paths.size() > 0) dropbox.upload(paths);
         } else {
             printf("Can't load Dropbox token from 3DSync.ini\n");
         }

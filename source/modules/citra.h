@@ -74,30 +74,32 @@ void downloadCitraSaveToCheckpoint(std::string dropboxToken, std::string timesta
 
     std::string gameDirname = pathmap[gameCode];
     std::string gameSaveDir = baseSaveDir + "/" + gameDirname;
-    std::string destPath = gameSaveDir + "/Citra_" + timestamp;
+    // std::string destPath = gameSaveDir + "/Citra_" + timestamp;
+    // std::string destPath = "/Citra_" + timestamp;
+    std::string destPath = gameSaveDir + "/Citra";
 
     std::cout << "Citra save found for " << gameDirname << " with timestamp: " << timestamp << std::endl;
 
     struct stat info;
 
     if (stat(destPath.c_str(), &info) != 0) {
-        // TODO: Figure this out
-        // FS_Archive sdmcArch;
-        // FSUSER_CreateDirectory(sdmcArch, fsMakePath(PATH_ASCII, destPath.c_str()), 0);
-    
-        // int status = mkdir(destPath.c_str(), 0777);
-        // if (status != 0) {
-        //     std::cout << "Failed to create Checkpoint save dir " << destPath << ", skipping" << std::endl;
-        //     return;
-        // }
+        std::cout << "Creating dir: " << destPath << std::endl;
+        int status = mkdir(destPath.c_str(), 0777);
+        if (status != 0) {
+            std::cout << "Failed to create Checkpoint save dir " << destPath << ", skipping" << std::endl;
+            return;
+        }
         // std::cout << "Created Checkpoint save dir " << destPath << std::endl;
         // dropbox.download(fullPath + "/data/00000001/system",  destPath + "/system");
         // dropbox.download(fullPath + "/data/00000001/user1", destPath + "/user1");
     } else if (info.st_mode & !S_IFDIR) {
         std::cout << "File already exists at Checkpoint save dir, delete the file and try again:\n" << destPath << std::endl;
     } else {
-        std::cout << "Checkpoint save dir already exists, skipping: " << destPath << std::endl;
+        std::cout << "Checkpoint save dir already exists: " << destPath << std::endl;
     }
+
+    dropbox.download(fullPath + "/data/00000001/system",  destPath + "/system");
+    dropbox.download(fullPath + "/data/00000001/user1", destPath + "/user1");
 }
 
 void downloadCitraSaves(std::string dropboxToken, std::string checkpointPath) {
