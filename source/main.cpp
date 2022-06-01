@@ -86,10 +86,10 @@ int main(int argc, char** argv){
             Dropbox dropbox(dropboxToken);
 
             // Download Citra saves to local Checkpoint directory
-            std::string checkpointPath = reader.Get("Paths", "Checkpoint", "");
-            if (checkpointPath != "") {
-                downloadCitraSaves(dropboxToken, checkpointPath);
-            }
+            // std::string checkpointPath = reader.Get("Paths", "Checkpoint", "");
+            // if (checkpointPath != "") {
+            //     downloadCitraSaves(dropboxToken, checkpointPath);
+            // }
 
             // Upload to Dropbox
             std::map<std::string, std::string> values = reader.GetValues();

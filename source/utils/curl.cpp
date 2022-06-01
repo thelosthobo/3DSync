@@ -4,7 +4,7 @@ Curl::Curl(){
     curl_global_init(CURL_GLOBAL_ALL);
     _curl = curl_easy_init();
     if(!_curl) printf("Failed to init libcurl.\n");
-    // curl_easy_setopt(_curl, CURLOPT_USERAGENT, "3DSync/" VERSION_STRING);
+    curl_easy_setopt(_curl, CURLOPT_USERAGENT, "3DSync/" VERSION_STRING);
     curl_easy_setopt(_curl, CURLOPT_CONNECTTIMEOUT, 50L);
     curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(_curl, CURLOPT_FAILONERROR, 1L);
@@ -54,6 +54,7 @@ long Curl::getHTTPCode() {
 }
 
 void Curl::setWriteData(void *pointer) {
+    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _write_string_callback);
     curl_easy_setopt(_curl, CURLOPT_WRITEDATA, pointer);
 }
 
@@ -78,7 +79,12 @@ size_t Curl::_read_callback(void *ptr, size_t size, size_t nmemb, void *userdata
     return retcode;
 }
 
-size_t Curl::_write_callback(const char* data, size_t size, size_t nmemb, std::string* userdata){
+size_t Curl::_write_callback(void *data, size_t size, size_t nmemb, void* userdata){
+    size_t newLength = size*nmemb;
+    return newLength;
+}
+
+size_t Curl::_write_string_callback(const char* data, size_t size, size_t nmemb, std::string* userdata){
     size_t newLength = size*nmemb;
     userdata->append(data, newLength);
     return newLength;
