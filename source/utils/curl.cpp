@@ -79,7 +79,7 @@ size_t Curl::_read_callback(void *ptr, size_t size, size_t nmemb, void *userdata
     return retcode;
 }
 
-size_t Curl::_write_callback(void *data, size_t size, size_t nmemb, void* userdata){
+size_t Curl::_write_callback(void *data, size_t size, size_t nmemb, void *userdata){
     size_t newLength = size*nmemb;
     return newLength;
 }
