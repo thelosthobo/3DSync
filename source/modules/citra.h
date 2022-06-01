@@ -81,13 +81,14 @@ void downloadCitraSaveToCheckpoint(std::string dropboxToken, std::string timesta
     struct stat info;
 
     if (stat(destPath.c_str(), &info) != 0) {
-        int status = mkdir(destPath.c_str(), 0777);
-        if (status != 0) {
-            std::cout << "Failed to create Checkpoint save dir " << destPath << ", skipping" << std::endl;
-            return;
-        }
-        dropbox.download(fullPath + "/data/00000001/system",  destPath + "/system");
-        dropbox.download(fullPath + "/data/00000001/user1", destPath + "/user1");
+        // int status = mkdir(destPath.c_str(), 0777);
+        // if (status != 0) {
+        //     std::cout << "Failed to create Checkpoint save dir " << destPath << ", skipping" << std::endl;
+        //     return;
+        // }
+        // std::cout << "Created Checkpoint save dir " << destPath << std::endl;
+        // dropbox.download(fullPath + "/data/00000001/system",  destPath + "/system");
+        // dropbox.download(fullPath + "/data/00000001/user1", destPath + "/user1");
     } else if (info.st_mode & !S_IFDIR) {
         std::cout << "File already exists at Checkpoint save dir, delete the file and try again:\n" << destPath << std::endl;
     } else {
@@ -100,20 +101,20 @@ void downloadCitraSaves(std::string dropboxToken, std::string checkpointPath) {
 
     Dropbox dropbox(dropboxToken);
     auto folder = dropbox.list_folder("/sdmc/Nintendo 3DS/00000000000000000000000000000000/00000000000000000000000000000000/title/00040000");
-    // for (auto lr : folder) {
-    //     std::string timestamp = getUpdateTimestampForCitraSave(dropboxToken, lr.path_display);
-    //     if (timestamp == "") {
-    //         std::cout << lr.name << ": Could not find timestamp, skipping" << std::endl; 
-    //         continue;
-    //     }
+    for (auto lr : folder) {
+        std::string timestamp = getUpdateTimestampForCitraSave(dropboxToken, lr.path_display);
+        if (timestamp == "") {
+            std::cout << lr.name << ": Could not find timestamp, skipping" << std::endl; 
+            continue;
+        }
 
-    //     downloadCitraSaveToCheckpoint(
-    //         dropboxToken,
-    //         timestamp,
-    //         checkpointPath,
-    //         pathmap,
-    //         lr.name,
-    //         lr.path_display
-    //     );
-    // }
+        downloadCitraSaveToCheckpoint(
+            dropboxToken,
+            timestamp,
+            checkpointPath,
+            pathmap,
+            lr.name,
+            lr.path_display
+        );
+    }
 }
