@@ -22,7 +22,7 @@ $(function(){
         e.preventDefault();
         let token = [...Array(100)].map(i=>(~~(Math.random()*36)).toString(36)).join('');
         localStorage.setItem('token', token);
-        window.location.href = "https://www.dropbox.com/oauth2/authorize?client_id=3x8ipjhtplvcoba&response_type=token&redirect_uri=https://kyraminol.github.io/3DSync/&state=" + token;
+        window.location.href = "https://www.dropbox.com/oauth2/authorize?client_id=3x8ipjhtplvcoba&response_type=token&token_access_type=offline&redirect_uri=https://kyraminol.github.io/3DSync/&state=" + token;
     });
 
     function getConfigString(){
