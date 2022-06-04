@@ -23,7 +23,7 @@ $(function(){
         let token = [...Array(100)].map(i=>(~~(Math.random()*36)).toString(36)).join('');
         localStorage.setItem('token', token);
         let codeChallenge = [...Array(100)].map(i=>(~~(Math.random()*36)).toString(36)).join('');
-        localStorage.setItem('code_challenge', codeChallenge;
+        localStorage.setItem('code_challenge', codeChallenge);
         window.location.href = "https://www.dropbox.com/oauth2/authorize?client_id=z4n5nrlgoypivuw&response_type=code&token_access_type=offline&code_challenge=" + codeChallenge + "&code_challenge_method=plain&redirect_uri=https://concreted.github.io/3DSync/&state=" + token;
     });
 
