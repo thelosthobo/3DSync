@@ -25,8 +25,9 @@ $(function(){
         };
 
         fetch("https://api.dropbox.com/oauth2/token", requestOptions)
-            .then(response => JSON.parse(response.text()))
-            .then(function(result) {
+            .then(response =>response.text())
+            .then(function(respText) {
+                let result = JSON.parse(respText);
                 console.log(result);
                 localStorage.setItem('refresh_token', result['refresh_token']);
                 stepperInstace.nextStep();
