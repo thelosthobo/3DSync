@@ -47,12 +47,10 @@ std::map<std::string, std::string> findCheckpointSaves(std::string checkpointPat
             }
 
             std::string readpath(path + "/" + dirname);
-            // std::cout << readpath << std::endl;
 
             std::string gameCode = checkpointDirToCitraGameCode(dirname);
             if (gameCode != "") {
                 pathmap[gameCode] = dirname;
-                // std::cout << gameCode << " : " << dirname << std::endl;;
             } else {
                 std::cout << "Invalid game directory, skipping: " << dirname << std::endl;
             }
@@ -74,8 +72,10 @@ void downloadCitraSaveToCheckpoint(std::string dropboxToken, std::string timesta
 
     std::string gameDirname = pathmap[gameCode];
     std::string gameSaveDir = baseSaveDir + "/" + gameDirname;
+    // TODO: Currently only the latest Citra save is retained per game. 
+    //       Could append timestamp if wanted, but adding raw timestamp caused segfaults on 3DS.
+    //       Investigate further if want to keep older saves.
     // std::string destPath = gameSaveDir + "/Citra_" + timestamp;
-    // std::string destPath = "/Citra_" + timestamp;
     std::string destPath = gameSaveDir + "/Citra";
 
     std::cout << "Citra save found for " << gameDirname << " with timestamp: " << timestamp << std::endl;
@@ -89,9 +89,6 @@ void downloadCitraSaveToCheckpoint(std::string dropboxToken, std::string timesta
             std::cout << "Failed to create Checkpoint save dir " << destPath << ", skipping" << std::endl;
             return;
         }
-        // std::cout << "Created Checkpoint save dir " << destPath << std::endl;
-        // dropbox.download(fullPath + "/data/00000001/system",  destPath + "/system");
-        // dropbox.download(fullPath + "/data/00000001/user1", destPath + "/user1");
     } else if (info.st_mode & !S_IFDIR) {
         std::cout << "File already exists at Checkpoint save dir, delete the file and try again:\n" << destPath << std::endl;
     } else {
