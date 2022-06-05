@@ -11,7 +11,8 @@
 
 #include "libs/inih/INIReader/INIReader.h"
 #include "modules/dropbox.h"
-
+#include "modules/citra.h"
+#include "modules/time.h"
 
 std::vector<std::string> recurse_dir(std::string basepath, std::string additionalpath=""){
     std::vector<std::string> paths;
@@ -71,7 +72,6 @@ void componentsExit(){
     gfxExit();
 }
 
-
 int main(int argc, char** argv){
     if(!componentsInit()) componentsExit();
 
@@ -80,10 +80,23 @@ int main(int argc, char** argv){
     if(reader.ParseError() < 0){
         printf("Can't load configuration\n");
     } else {
-        std::string dropboxToken = reader.Get("Dropbox", "token", "");
+        std::string refreshToken = reader.Get("Dropbox", "RefreshToken", "");
         
-        if(dropboxToken != ""){
-            Dropbox dropbox(dropboxToken);
+        if(refreshToken != ""){
+            std::string dropboxToken = get_dropbox_access_token(refreshToken);
+            if (dropboxToken == "") {
+                std::cout << "Failed to receive Dropbox access token, exiting" << std::endl;
+                return 1;
+            }
+
+            // Download Citra saves to local Checkpoint directory
+            std::string checkpointPath = reader.Get("Paths", "Checkpoint", "");
+            if (checkpointPath != "") {
+                downloadCitraSaves(dropboxToken, checkpointPath);
+                std::cout << "Finished downloading Citra saves!" << std::endl << std::endl;
+            }
+
+            // Upload to Dropbox
             std::map<std::string, std::string> values = reader.GetValues();
             std::map<std::pair<std::string, std::string>, std::vector<std::string>> paths;
             for(auto value : values){
@@ -92,10 +105,12 @@ int main(int argc, char** argv){
                     paths[key] = recurse_dir(value.second);
                 }
             }
+            Dropbox dropbox(dropboxToken);
             if((int)paths.size() > 0) dropbox.upload(paths);
         } else {
             printf("Can't load Dropbox token from 3DSync.ini\n");
         }
+
     }
 
     printf("\n\nPress START to exit...");

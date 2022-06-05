@@ -4,6 +4,7 @@ Curl::Curl(){
     curl_global_init(CURL_GLOBAL_ALL);
     _curl = curl_easy_init();
     if(!_curl) printf("Failed to init libcurl.\n");
+    // Comment out next line for non-3DS builds
     curl_easy_setopt(_curl, CURLOPT_USERAGENT, "3DSync/" VERSION_STRING);
     curl_easy_setopt(_curl, CURLOPT_CONNECTTIMEOUT, 50L);
     curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -37,11 +38,39 @@ void Curl::setReadData(void *pointer){
     curl_easy_setopt(_curl, CURLOPT_POST, 1L);
 }
 
+void Curl::setBody(const void *pointer) {
+    curl_easy_setopt(_curl, CURLOPT_POSTFIELDS, pointer);
+}
+
 int Curl::perform(){
     CURLcode rescode = curl_easy_perform(_curl);
-    const char *res = curl_easy_strerror(rescode);
-    printf("Curl result: %s\n", res);
+    curl_easy_strerror(rescode);
     return rescode;
+}
+
+long Curl::getHTTPCode() {
+    long http_code = 0;
+    curl_easy_getinfo (_curl, CURLINFO_RESPONSE_CODE, &http_code);
+    return http_code;
+}
+
+void Curl::setWriteData(void *pointer) {
+    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _write_string_callback);
+    curl_easy_setopt(_curl, CURLOPT_WRITEDATA, pointer);
+}
+
+void Curl::setWriteFile(FILE *fp) {
+    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, _write_file_callback);
+    curl_easy_setopt(_curl, CURLOPT_WRITEDATA, fp);
+}
+
+void Curl::setHeaderData(void *pointer) {
+    curl_easy_setopt(_curl, CURLOPT_HEADERFUNCTION, _header_callback);
+    curl_easy_setopt(_curl, CURLOPT_HEADERDATA, pointer);
+}
+
+void Curl::setCustomRequestPost() {
+    curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, "POST");
 }
 
 size_t Curl::_read_callback(void *ptr, size_t size, size_t nmemb, void *userdata){
@@ -55,7 +84,27 @@ size_t Curl::_read_callback(void *ptr, size_t size, size_t nmemb, void *userdata
     return retcode;
 }
 
-size_t Curl::_write_callback(void *data, size_t size, size_t nmemb, void* userdata){
-    size_t newLength = size*nmemb;
+size_t Curl::_write_callback(void *data, size_t size, size_t nmemb, void* userdata){    size_t newLength = size*nmemb;
     return newLength;
+}
+
+size_t Curl::_write_string_callback(const char* data, size_t size, size_t nmemb, std::string* userdata){
+    size_t newLength = size*nmemb;
+    userdata->append(data, newLength);
+    return newLength;
+}
+
+size_t Curl::_header_callback(char* buffer, size_t size,
+    size_t nitems, void* userdata)
+{
+    std::string *headers = (std::string*) userdata;
+    headers->append(buffer, nitems * size);
+    return nitems * size;
+}
+
+size_t Curl::_write_file_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
+{
+  size_t written;
+  written = fwrite(ptr, size, nmemb, stream);
+  return written;
 }
