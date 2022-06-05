@@ -1,7 +1,7 @@
 $(function(){
+    const clientId = 'z4n5nrlgoypivuw';
     let params = new URLSearchParams(window.location.hash.substr(1));
-    let token = params.get('access_token');
-    let state = params.get('state');
+    let code = params.get('code');
     let paths = [];
 
     let stepperInstace = new MStepper(document.querySelector('.stepper'), {
@@ -10,21 +10,35 @@ $(function(){
         stepTitleNavigation: false,
     });
 
-    if(token !== null && state !== null){
-        if(state === localStorage.getItem('token')){
-            localStorage.setItem('dropboxToken', token);
-            stepperInstace.nextStep();
-        }
+    if(code !== null){
+        var formdata = new FormData();
+        formdata.append("code", code);
+        formdata.append("grant_type", "authorization_code");
+        formdata.append("code_verifier", localStorage.getItem('code_challenge'));
+        formdata.append("client_id", clientId);
+        formdata.append("redirect_uri", "https://concreted.github.io/3DSync/");
+
+        var requestOptions = {
+            method: 'POST',
+            body: formdata,
+            redirect: 'follow'
+        };
+
+        fetch("https://api.dropbox.com/oauth2/token", requestOptions)
+            .then(response => JSON.parse(response.text()))
+            .then(function(result) {
+                console.log(result);
+                localStorage.setItem('refresh_token', result['refresh_token']);
+                stepperInstace.nextStep();
+            })
+            .catch(error => console.log('error', error));
     }
-    localStorage.removeItem('token');
 
     $('#dropbox-login').on('click', function(e){
         e.preventDefault();
-        let token = [...Array(100)].map(i=>(~~(Math.random()*36)).toString(36)).join('');
-        localStorage.setItem('token', token);
         let codeChallenge = [...Array(100)].map(i=>(~~(Math.random()*36)).toString(36)).join('');
         localStorage.setItem('code_challenge', codeChallenge);
-        window.location.href = "https://www.dropbox.com/oauth2/authorize?client_id=z4n5nrlgoypivuw&response_type=code&token_access_type=offline&code_challenge=" + codeChallenge + "&code_challenge_method=plain&redirect_uri=https://concreted.github.io/3DSync/&state=" + token;
+        window.location.href = "https://www.dropbox.com/oauth2/authorize?client_id=" + clientId + "&response_type=code&token_access_type=offline&code_challenge=" + codeChallenge + "&code_challenge_method=plain&redirect_uri=https://concreted.github.io/3DSync/";
     });
 
     function getConfigString(){
@@ -32,7 +46,7 @@ $(function(){
         paths.forEach(function(path){
             strPaths += path[0] + '=' + path[1] + '\n';
         });
-        return '[Dropbox]\nToken=' + localStorage.getItem('dropboxToken') + '\n' + '[Paths]\n' + strPaths;
+        return '[Dropbox]\nRefreshToken=' + localStorage.getItem('refresh_token') + '\n' + '[Paths]\n' + strPaths;
     }
 
     $('#download-config').on('click', function(e){
