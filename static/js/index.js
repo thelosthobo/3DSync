@@ -29,7 +29,7 @@ $(function(){
             .then(function(respText) {
                 let result = JSON.parse(respText);
                 console.log(result);
-                if (result.error !== "") {
+                if (result.error === "") {
                     localStorage.setItem('refresh_token', result['refresh_token']);
                     stepperInstace.nextStep();
                 } else {
