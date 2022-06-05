@@ -1,6 +1,6 @@
 $(function(){
     const clientId = 'z4n5nrlgoypivuw';
-    let params = new URLSearchParams(window.location.hash.substr(1));
+    let params = new URLSearchParams(window.location.search);
     let code = params.get('code');
     let paths = [];
 
