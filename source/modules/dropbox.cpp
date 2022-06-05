@@ -68,7 +68,6 @@ std::vector<ListResult> Dropbox::list_folder(std::string path) {
     std::vector<ListResult> paths;
 
     std::string body("{\"path\":\"" + path + "\"}");
-    // std::cout << body << std::endl;
     std::string auth("Authorization: Bearer " + _token);
     struct curl_slist *headers = NULL;
     headers = curl_slist_append(headers, auth.c_str());
@@ -88,8 +87,6 @@ std::vector<ListResult> Dropbox::list_folder(std::string path) {
     if (http_code != 200) {
        std::cout << "Download error: Received " << http_code << std::endl;
     } else {
-        // std::cout << "http data: " << httpData << std::endl;
-
         struct json_object *parsed_json;
         struct json_object *entries;
         parsed_json = json_tokener_parse(httpData.c_str());

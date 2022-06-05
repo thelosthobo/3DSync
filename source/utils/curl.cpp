@@ -84,7 +84,8 @@ size_t Curl::_read_callback(void *ptr, size_t size, size_t nmemb, void *userdata
     return retcode;
 }
 
-size_t Curl::_write_callback(void *data, size_t size, size_t nmemb, void* userdata){    size_t newLength = size*nmemb;
+size_t Curl::_write_callback(void *data, size_t size, size_t nmemb, void* userdata){
+    size_t newLength = size*nmemb;
     return newLength;
 }
 
@@ -94,17 +95,14 @@ size_t Curl::_write_string_callback(const char* data, size_t size, size_t nmemb,
     return newLength;
 }
 
-size_t Curl::_header_callback(char* buffer, size_t size,
-    size_t nitems, void* userdata)
-{
+size_t Curl::_header_callback(char* buffer, size_t size, size_t nitems, void* userdata) {
     std::string *headers = (std::string*) userdata;
     headers->append(buffer, nitems * size);
     return nitems * size;
 }
 
-size_t Curl::_write_file_callback(void *ptr, size_t size, size_t nmemb, FILE *stream)
-{
-  size_t written;
-  written = fwrite(ptr, size, nmemb, stream);
-  return written;
+size_t Curl::_write_file_callback(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    size_t written;
+    written = fwrite(ptr, size, nmemb, stream);
+    return written;
 }
