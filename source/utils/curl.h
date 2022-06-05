@@ -16,6 +16,7 @@ class Curl{
         void setHeaderData(void *pointer);
         void setWriteFile(FILE *pointer);
         void setBody(const void *pointer);
+        void setCustomRequestPost();
         long getHTTPCode();
         int perform();
     private:

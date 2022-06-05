@@ -3,7 +3,43 @@
 #include <memory>
 #include <iostream>
 
+const std::string CLIENT_ID = "z4n5nrlgoypivuw";
+
 Dropbox::Dropbox(std::string token) : _token(token){
+}
+
+std::string get_dropbox_access_token(std::string refreshToken) {
+    std::string postFields = "client_id=" + CLIENT_ID + "&grant_type=refresh_token&refresh_token=" + refreshToken;
+
+    Curl _curl;
+    
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    headers = curl_slist_append(headers, "Expect:");
+    headers = curl_slist_append(headers, "Connection: close");
+    _curl.setURL(std::string("https://api.dropboxapi.com/oauth2/token?" + postFields));
+    _curl.setHeaders(headers);
+
+    std::string httpData;
+    _curl.setWriteData(&httpData);
+    _curl.setCustomRequestPost();
+
+    _curl.perform();
+
+    auto http_code = _curl.getHTTPCode();
+
+    if (http_code != 200) {
+       std::cout << "Token auth error: Received " << http_code << std::endl;
+       return "";
+    }
+
+    struct json_object *parsed_json;
+    struct json_object *access_token;
+    parsed_json = json_tokener_parse(httpData.c_str());
+    json_object_object_get_ex(parsed_json, "access_token", &access_token);
+
+    std::string access_token_str = json_object_get_string(access_token);
+    return access_token_str;
 }
 
 void Dropbox::upload(std::map<std::pair<std::string, std::string>, std::vector<std::string>> paths){
@@ -45,7 +81,7 @@ std::vector<ListResult> Dropbox::list_folder(std::string path) {
 
     std::string httpData;
     _curl.setWriteData(&httpData);
-    auto rescode = _curl.perform();
+    _curl.perform();
 
     auto http_code = _curl.getHTTPCode();
 

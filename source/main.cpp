@@ -80,16 +80,20 @@ int main(int argc, char** argv){
     if(reader.ParseError() < 0){
         printf("Can't load configuration\n");
     } else {
-        std::string dropboxToken = reader.Get("Dropbox", "token", "");
+        std::string refreshToken = reader.Get("Dropbox", "RefreshToken", "");
         
-        if(dropboxToken != ""){
-            Dropbox dropbox(dropboxToken);
+        if(refreshToken != ""){
+            std::string dropboxToken = get_dropbox_access_token(refreshToken);
+            if (dropboxToken == "") {
+                std::cout << "Failed to receive Dropbox access token, exiting" << std::endl;
+                return 1;
+            }
 
             // Download Citra saves to local Checkpoint directory
             std::string checkpointPath = reader.Get("Paths", "Checkpoint", "");
             if (checkpointPath != "") {
                 downloadCitraSaves(dropboxToken, checkpointPath);
-                std::cout << "Finished downloading Citra saves" << std::endl;
+                std::cout << "Finished downloading Citra saves!" << std::endl << std::endl;
             }
 
             // Upload to Dropbox
@@ -101,7 +105,8 @@ int main(int argc, char** argv){
                     paths[key] = recurse_dir(value.second);
                 }
             }
-            // if((int)paths.size() > 0) dropbox.upload(paths);
+            Dropbox dropbox(dropboxToken);
+            if((int)paths.size() > 0) dropbox.upload(paths);
         } else {
             printf("Can't load Dropbox token from 3DSync.ini\n");
         }

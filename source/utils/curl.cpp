@@ -4,6 +4,7 @@ Curl::Curl(){
     curl_global_init(CURL_GLOBAL_ALL);
     _curl = curl_easy_init();
     if(!_curl) printf("Failed to init libcurl.\n");
+    // Comment out next line for non-3DS builds
     curl_easy_setopt(_curl, CURLOPT_USERAGENT, "3DSync/" VERSION_STRING);
     curl_easy_setopt(_curl, CURLOPT_CONNECTTIMEOUT, 50L);
     curl_easy_setopt(_curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -43,7 +44,7 @@ void Curl::setBody(const void *pointer) {
 
 int Curl::perform(){
     CURLcode rescode = curl_easy_perform(_curl);
-    const char *res = curl_easy_strerror(rescode);
+    curl_easy_strerror(rescode);
     return rescode;
 }
 
@@ -66,6 +67,10 @@ void Curl::setWriteFile(FILE *fp) {
 void Curl::setHeaderData(void *pointer) {
     curl_easy_setopt(_curl, CURLOPT_HEADERFUNCTION, _header_callback);
     curl_easy_setopt(_curl, CURLOPT_HEADERDATA, pointer);
+}
+
+void Curl::setCustomRequestPost() {
+    curl_easy_setopt(_curl, CURLOPT_CUSTOMREQUEST, "POST");
 }
 
 size_t Curl::_read_callback(void *ptr, size_t size, size_t nmemb, void *userdata){

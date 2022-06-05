@@ -13,6 +13,8 @@ typedef struct ListResult {
     std::string server_modified;
 } ListResult;
 
+std::string get_dropbox_access_token(std::string refreshToken);
+
 class Dropbox{
     public:
         Dropbox(std::string token);
@@ -20,6 +22,7 @@ class Dropbox{
         void upload(std::map<std::pair<std::string, std::string>, std::vector<std::string>> paths);
         std::vector<ListResult> list_folder(std::string path);
         void download(std::string path, std::string destPath);
+        
     private:
         std::string _token;
         Curl _curl;

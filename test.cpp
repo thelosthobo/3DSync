@@ -16,8 +16,12 @@
 int main(int argc, char** argv){
     std::string checkpointPath = "/mnt/c/3ds-sdmc-dev/3ds/Checkpoint";
 
-    auto token = std::getenv("DROPBOX_TOKEN");
-    std::string dropboxToken(token);
-    
+    auto refreshToken = std::getenv("DROPBOX_REFRESH_TOKEN");
+
+    std::string dropboxToken = get_dropbox_access_token(refreshToken);
+    if (dropboxToken == "") {
+        std::cout << "Failed to receive Dropbox access token, exiting" << std::endl;
+        return 1;
+    }
     downloadCitraSaves(dropboxToken, checkpointPath);
 }
