@@ -78,7 +78,7 @@ void downloadCitraSaveToCheckpoint(std::string dropboxToken, std::string timesta
     // std::string destPath = gameSaveDir + "/Citra_" + timestamp;
     std::string destPath = gameSaveDir + "/Citra";
 
-    std::cout << "Citra save found for " << gameDirname << " with timestamp: " << timestamp << std::endl;
+    std::cout << "Citra save found for " << gameDirname << std::endl;
 
     struct stat info;
 
